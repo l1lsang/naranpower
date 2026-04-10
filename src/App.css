@@ -285,12 +285,24 @@
   font-size: 12px;
 }
 
+.admin-item-url {
+  word-break: break-all;
+}
+
+.admin-item-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .admin-item button {
   flex-shrink: 0;
   border: none;
   border-radius: 999px;
-  width: 58px;
+  min-width: 58px;
   height: 30px;
+  padding: 0 10px;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -1511,6 +1523,18 @@ main {
 
   .admin-item {
     padding: 8px;
+  }
+
+  .admin-item-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .admin-item-actions button {
+    min-width: 52px;
+    height: 28px;
+    padding: 0 8px;
   }
 
   .auth-modal-overlay {

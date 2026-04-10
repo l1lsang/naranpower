@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { google } from 'googleapis'
+import { createDecipheriv, createHash } from 'node:crypto'
 
 const LIMITS = {
   name: 60,
@@ -8,6 +9,10 @@ const LIMITS = {
   details: 4000,
   source: 80,
   pagePath: 300,
+  landingPath: 300,
+  landingToken: 600,
+  landingKeyword: 120,
+  queryString: 800,
   userAgent: 500,
 }
 
@@ -58,13 +63,47 @@ const getFirebaseApp = () => {
   })
 }
 
+const decodePowerlinkKeyword = (token) => {
+  const normalizedToken = toTrimmedString(token)
+  const secret = toTrimmedString(process.env.POWERLINK_URL_SECRET)
+
+  if (!normalizedToken || !secret) {
+    return ''
+  }
+
+  try {
+    const payloadBuffer = Buffer.from(normalizedToken, 'base64url')
+
+    if (payloadBuffer.length <= 28) {
+      return ''
+    }
+
+    const iv = payloadBuffer.subarray(0, 12)
+    const authTag = payloadBuffer.subarray(12, 28)
+    const encrypted = payloadBuffer.subarray(28)
+    const key = createHash('sha256').update(secret).digest()
+    const decipher = createDecipheriv('aes-256-gcm', key, iv)
+
+    decipher.setAuthTag(authTag)
+
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8').trim()
+    return decrypted.slice(0, LIMITS.landingKeyword)
+  } catch (error) {
+    return ''
+  }
+}
+
 const validateConsultationPayload = (payload) => {
   const name = toTrimmedString(payload.name)
   const phone = toTrimmedString(payload.phone)
   const details = toTrimmedString(payload.details)
   const source = toTrimmedString(payload.source) || 'website-quick-form'
   const pagePath = toTrimmedString(payload.pagePath) || '#/'
+  const landingPath = toTrimmedString(payload.landingPath) || '/'
+  const landingToken = toTrimmedString(payload.landingToken)
+  const queryString = toTrimmedString(payload.queryString)
   const userAgent = toTrimmedString(payload.userAgent)
+  const landingKeyword = decodePowerlinkKeyword(landingToken)
 
   if (!name || !phone || !details) {
     throw new HttpError(400, '이름, 연락처, 피해 내용을 모두 입력해주세요.')
@@ -90,6 +129,18 @@ const validateConsultationPayload = (payload) => {
     throw new HttpError(400, '경로(pagePath) 길이가 너무 깁니다.')
   }
 
+  if (landingPath.length > LIMITS.landingPath) {
+    throw new HttpError(400, '랜딩 경로(landingPath) 길이가 너무 깁니다.')
+  }
+
+  if (landingToken.length > LIMITS.landingToken) {
+    throw new HttpError(400, '랜딩 토큰(landingToken) 길이가 너무 깁니다.')
+  }
+
+  if (queryString.length > LIMITS.queryString) {
+    throw new HttpError(400, '쿼리 문자열(queryString) 길이가 너무 깁니다.')
+  }
+
   if (userAgent.length > LIMITS.userAgent) {
     throw new HttpError(400, '사용자 정보(userAgent) 길이가 너무 깁니다.')
   }
@@ -100,12 +151,20 @@ const validateConsultationPayload = (payload) => {
     details,
     source,
     pagePath,
+    landingPath,
+    landingToken,
+    landingKeyword,
+    queryString,
     userAgent,
   }
 }
 
 const buildTelegramMessage = (request) => {
   const details = request.details.length > 1500 ? `${request.details.slice(0, 1500)}...` : request.details
+  const landingToken =
+    request.landingToken.length > 160
+      ? `${request.landingToken.slice(0, 160)}...`
+      : request.landingToken
 
   return [
     '[빠른상담 신규 접수]',
@@ -113,7 +172,12 @@ const buildTelegramMessage = (request) => {
     `접수시각(KST): ${request.createdAtKst}`,
     `이름: ${request.name}`,
     `연락처: ${request.phone}`,
-    `경로: ${request.pagePath}`,
+    `출처: ${request.source}`,
+    `랜딩경로: ${request.landingPath}`,
+    `토큰: ${landingToken || '-'}`,
+    `키워드(복호화): ${request.landingKeyword || '-'}`,
+    `해시경로: ${request.pagePath}`,
+    `쿼리: ${request.queryString || '-'}`,
     '',
     '피해 내용',
     details,
@@ -189,7 +253,7 @@ const appendGoogleSheet = async (request) => {
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${sheetName}!A:I`,
+    range: `${sheetName}!A:L`,
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     requestBody: {
@@ -201,7 +265,11 @@ const appendGoogleSheet = async (request) => {
           request.phone,
           request.details,
           request.source,
+          request.landingPath,
+          request.landingToken,
+          request.landingKeyword,
           request.pagePath,
+          request.queryString,
           request.userAgent,
           'stored-via-vercel-api',
         ],
@@ -270,6 +338,10 @@ export default async function handler(req, res) {
       details: payload.details,
       source: payload.source,
       pagePath: payload.pagePath,
+      landingPath: payload.landingPath,
+      landingToken: payload.landingToken,
+      landingKeyword: payload.landingKeyword,
+      queryString: payload.queryString,
       userAgent: payload.userAgent,
       createdAt: FieldValue.serverTimestamp(),
       createdAtClient: createdAt.toISOString(),

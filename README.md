@@ -43,6 +43,24 @@ export default defineConfig([
 ])
 ```
 
+## Naver Powerlink Landing URLs
+
+The app now supports keyword-specific landing URLs with encrypted tokens while keeping the same home screen UI.
+
+- Recommended landing path format: `/p/{encryptedToken}`
+- Set custom prefix in frontend if needed: `VITE_POWERLINK_PATH_PREFIX`
+- Admin page can generate encrypted URLs directly (`/api/powerlink/generate`)
+- On form submit, the following are sent to API and saved:
+  - `landingPath`
+  - `landingToken`
+  - `landingKeyword` (decoded server-side when `POWERLINK_URL_SECRET` is set)
+
+Generate encrypted landing URLs:
+
+```bash
+npm run powerlink:url -- "코인 사기 변호사" "https://your-domain.vercel.app"
+```
+
 ## Quick Consultation Flow (Vercel API)
 
 This project includes `api/consultation.js` for quick consultation submissions.

@@ -116,6 +116,24 @@ service cloud.firestore {
         && data.createdBy == request.auth.uid;
     }
 
+    function validPowerlinkLink(data) {
+      return data.keys().hasOnly([
+          'keyword',
+          'token',
+          'url',
+          'path',
+          'createdAt',
+          'createdBy'
+        ])
+        && hasText(data, 'keyword', 1, 120)
+        && hasText(data, 'token', 20, 600)
+        && hasText(data, 'url', 1, 1200)
+        && (!('path' in data) || hasText(data, 'path', 1, 900))
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.createdBy == request.auth.uid;
+    }
+
     // 관리자 계정 문서
     // 현재 앱 구조(클라이언트에서 회원가입 후 adminUsers 생성)와 호환되는 규칙.
     match /adminUsers/{uid} {
@@ -143,6 +161,14 @@ service cloud.firestore {
     match /companyCases/{docId} {
       allow read: if true;
       allow create: if isAdmin() && validCompanyCase(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // 네이버 파워링크 URL 관리
+    match /powerlinkLinks/{docId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && validPowerlinkLink(request.resource.data);
       allow update: if false;
       allow delete: if isAdmin();
     }

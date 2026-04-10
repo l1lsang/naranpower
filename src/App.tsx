@@ -61,6 +61,13 @@ type CompanyCase = {
   image: string
 }
 
+type PowerlinkLink = {
+  id: string
+  keyword: string
+  token: string
+  url: string
+}
+
 type LawyerProfile = {
   name: string
   role: string
@@ -79,6 +86,46 @@ const ADMIN_INVITE_CODE = (
 ).trim()
 
 const CONSULTATION_API_URL = (import.meta.env.VITE_CONSULTATION_API_URL ?? '').trim()
+const POWERLINK_GENERATE_API_URL = (import.meta.env.VITE_POWERLINK_GENERATE_API_URL ?? '').trim()
+
+const normalizePowerlinkPathPrefix = (prefix: string): string => {
+  const trimmed = prefix.trim()
+
+  if (!trimmed) {
+    return '/p/'
+  }
+
+  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`
+}
+
+const POWERLINK_PATH_PREFIX = normalizePowerlinkPathPrefix(
+  import.meta.env.VITE_POWERLINK_PATH_PREFIX ?? '/p/',
+)
+
+const getPowerlinkTokenFromPath = (pathname: string): string => {
+  const normalizedPathname = pathname.trim()
+
+  if (!normalizedPathname) {
+    return ''
+  }
+
+  const safePathname = normalizedPathname.startsWith('/') ? normalizedPathname : `/${normalizedPathname}`
+  const lowerPathname = safePathname.toLowerCase()
+  const lowerPrefix = POWERLINK_PATH_PREFIX.toLowerCase()
+
+  if (!lowerPathname.startsWith(lowerPrefix)) {
+    return ''
+  }
+
+  const rawToken = safePathname.slice(POWERLINK_PATH_PREFIX.length).split('/')[0] ?? ''
+
+  try {
+    return decodeURIComponent(rawToken).trim()
+  } catch (error) {
+    return rawToken.trim()
+  }
+}
 
 const resolveRoute = (hash: string): PageRoute => {
   const cleaned = hash.replace(/^#/, '').trim().toLowerCase()
@@ -250,6 +297,8 @@ const CONSULTATION_LIMITS = {
   details: 4000,
 }
 
+const POWERLINK_KEYWORD_LIMIT = 120
+
 const MAX_IMAGE_UPLOAD_SIZE_MB = 10
 const MAX_IMAGE_UPLOAD_SIZE_BYTES = MAX_IMAGE_UPLOAD_SIZE_MB * 1024 * 1024
 
@@ -379,6 +428,7 @@ function App() {
 
   const [rollingCases, setRollingCases] = useState<RollingCase[]>([])
   const [companyCases, setCompanyCases] = useState<CompanyCase[]>([])
+  const [powerlinkLinks, setPowerlinkLinks] = useState<PowerlinkLink[]>([])
 
   const [adminOpen, setAdminOpen] = useState(false)
   const [adminNotice, setAdminNotice] = useState('')
@@ -402,6 +452,9 @@ function App() {
   const [consultationBusy, setConsultationBusy] = useState(false)
   const [consultationNotice, setConsultationNotice] = useState('')
   const [consultationError, setConsultationError] = useState('')
+
+  const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
+  const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
 
   const displayRollingCases = rollingCases.length > 0 ? rollingCases : defaultRollingCases
   const rollingLoopCases = useMemo(
@@ -529,7 +582,7 @@ function App() {
     return () => {
       observer.disconnect()
     }
-  }, [route, adminOpen, displayRollingCases.length, companyCases.length])
+  }, [route, adminOpen, displayRollingCases.length, companyCases.length, powerlinkLinks.length])
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
@@ -632,7 +685,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !isStaff) {
+      setPowerlinkLinks([])
       return
     }
 
@@ -668,6 +722,49 @@ function App() {
       (error) => {
         console.error(error)
         setRollingCases([])
+      },
+    )
+
+    return () => {
+      unsubscribe()
+    }
+  }, [isStaff])
+
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      return
+    }
+
+    const powerlinkLinksQuery = query(collection(db, 'powerlinkLinks'), orderBy('createdAt', 'desc'))
+
+    const unsubscribe = onSnapshot(
+      powerlinkLinksQuery,
+      (snapshot) => {
+        const mappedLinks = snapshot.docs
+          .map((snapshotDoc) => {
+            const data = snapshotDoc.data()
+            const keyword = toTrimmedString(data.keyword)
+            const token = toTrimmedString(data.token)
+            const url = toTrimmedString(data.url)
+
+            if (!keyword || !token || !url) {
+              return null
+            }
+
+            return {
+              id: snapshotDoc.id,
+              keyword,
+              token,
+              url,
+            }
+          })
+          .filter((item): item is PowerlinkLink => item !== null)
+
+        setPowerlinkLinks(mappedLinks)
+      },
+      (error) => {
+        console.error(error)
+        setPowerlinkLinks([])
       },
     )
 
@@ -954,6 +1051,8 @@ function App() {
     }
 
     const endpoint = CONSULTATION_API_URL || '/api/consultation'
+    const landingPath = window.location.pathname || '/'
+    const landingToken = getPowerlinkTokenFromPath(landingPath)
 
     setConsultationBusy(true)
 
@@ -967,8 +1066,11 @@ function App() {
           name,
           phone,
           details,
-          source: 'website-quick-form',
+          source: landingToken ? 'naver-powerlink' : 'website-quick-form',
           pagePath: window.location.hash || '#/',
+          landingPath,
+          landingToken,
+          queryString: window.location.search || '',
           userAgent: navigator.userAgent,
         }),
       })
@@ -991,6 +1093,105 @@ function App() {
       setConsultationError(error instanceof Error ? error.message : '접수 처리 중 오류가 발생했습니다.')
     } finally {
       setConsultationBusy(false)
+    }
+  }
+
+  const handleCreatePowerlinkLink = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    clearAdminFeedback()
+
+    if (!isStaff || !currentUser) {
+      setAdminError('관리자 로그인 후 이용해주세요.')
+      return
+    }
+
+    const keyword = powerlinkKeywordInput.trim()
+
+    if (!keyword) {
+      setAdminError('키워드를 입력해주세요.')
+      return
+    }
+
+    if (keyword.length > POWERLINK_KEYWORD_LIMIT) {
+      setAdminError(`키워드는 ${POWERLINK_KEYWORD_LIMIT}자 이하로 입력해주세요.`)
+      return
+    }
+
+    const endpoint = POWERLINK_GENERATE_API_URL || '/api/powerlink/generate'
+    setPowerlinkGenerateBusy(true)
+
+    try {
+      const idToken = await currentUser.getIdToken()
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ keyword }),
+      })
+
+      const responseBody = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean
+            message?: string
+            keyword?: string
+            token?: string
+            url?: string
+            path?: string
+          }
+        | null
+
+      if (!response.ok || !responseBody?.ok || !responseBody.keyword || !responseBody.token || !responseBody.url) {
+        const errorMessage = responseBody?.message ?? '파워링크 URL 생성에 실패했습니다.'
+        throw new Error(errorMessage)
+      }
+
+      await addDoc(collection(db, 'powerlinkLinks'), {
+        keyword: responseBody.keyword,
+        token: responseBody.token,
+        url: responseBody.url,
+        ...(responseBody.path ? { path: responseBody.path } : {}),
+        createdAt: serverTimestamp(),
+        createdBy: currentUser.uid,
+      })
+
+      setPowerlinkKeywordInput('')
+      setAdminNotice(`파워링크 URL 생성 완료: ${responseBody.url}`)
+    } catch (error) {
+      console.error(error)
+      setAdminError(error instanceof Error ? error.message : '파워링크 URL 생성 중 오류가 발생했습니다.')
+    } finally {
+      setPowerlinkGenerateBusy(false)
+    }
+  }
+
+  const handleDeletePowerlinkLink = async (id: string) => {
+    clearAdminFeedback()
+
+    if (!isStaff) {
+      setAdminError('관리자 로그인 후 이용해주세요.')
+      return
+    }
+
+    try {
+      await deleteDoc(doc(db, 'powerlinkLinks', id))
+      setAdminNotice('파워링크 URL 정보를 삭제했습니다.')
+    } catch (error) {
+      console.error(error)
+      setAdminError('파워링크 URL 삭제에 실패했습니다.')
+    }
+  }
+
+  const handleCopyPowerlinkLink = async (url: string) => {
+    clearAdminFeedback()
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setAdminNotice('파워링크 URL을 복사했습니다.')
+    } catch (error) {
+      console.error(error)
+      setAdminError('클립보드 복사에 실패했습니다.')
     }
   }
 
@@ -1406,6 +1607,56 @@ function App() {
                     </ul>
                   ) : (
                     <p className="admin-empty">DB에 저장된 사기업체 정보가 아직 없습니다.</p>
+                  )}
+                </div>
+              </article>
+
+              <article className="admin-card">
+                <h3>파워링크 URL 생성</h3>
+                <p>키워드를 입력하면 동일한 홈 화면으로 연결되는 암호화 하위 URL을 자동 생성합니다.</p>
+
+                <form className="admin-form" onSubmit={handleCreatePowerlinkLink}>
+                  <label>
+                    키워드
+                    <input
+                      type="text"
+                      value={powerlinkKeywordInput}
+                      onChange={(event) => setPowerlinkKeywordInput(event.target.value)}
+                      placeholder="예: 코인 사기 변호사"
+                      maxLength={POWERLINK_KEYWORD_LIMIT}
+                      required
+                      disabled={powerlinkGenerateBusy}
+                    />
+                  </label>
+                  <button type="submit" disabled={powerlinkGenerateBusy}>
+                    {powerlinkGenerateBusy ? '생성 중...' : '파워링크 URL 생성'}
+                  </button>
+                </form>
+
+                <div className="admin-list-wrap">
+                  <h4>생성된 파워링크 URL</h4>
+                  {powerlinkLinks.length > 0 ? (
+                    <ul className="admin-item-list">
+                      {powerlinkLinks.map((item) => (
+                        <li className="admin-item" key={item.id}>
+                          <div>
+                            <p>파워링크 키워드</p>
+                            <strong>{item.keyword}</strong>
+                            <span className="admin-item-url">{item.url}</span>
+                          </div>
+                          <div className="admin-item-actions">
+                            <button type="button" onClick={() => handleCopyPowerlinkLink(item.url)}>
+                              복사
+                            </button>
+                            <button type="button" onClick={() => handleDeletePowerlinkLink(item.id)}>
+                              삭제
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="admin-empty">아직 생성된 파워링크 URL이 없습니다.</p>
                   )}
                 </div>
               </article>
