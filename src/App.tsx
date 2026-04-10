@@ -2014,7 +2014,19 @@ function App() {
           aria-expanded={showFloatingContact}
           aria-controls="floating-contact-popup"
         >
-          연락처
+          <span className="floating-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path
+                d="M6.7 3.3A2 2 0 0 1 8.9 2h1.9a2 2 0 0 1 2 1.7l.4 2.8a2 2 0 0 1-1.1 2.1l-1.4.7a13.2 13.2 0 0 0 4.1 4.1l.7-1.4a2 2 0 0 1 2.1-1.1l2.8.4a2 2 0 0 1 1.7 2v1.9a2 2 0 0 1-1.3 2.2l-1.2.4a7.8 7.8 0 0 1-6.8-1.1A22.3 22.3 0 0 1 5.2 10a7.8 7.8 0 0 1-1.1-6.8l.4-1.2a2 2 0 0 1 2.2-1.3Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span>연락처</span>
         </button>
         <button type="button" className="floating-action-btn floating-action-btn-form" onClick={moveToQuickFormSection}>
           상담폼 이동
@@ -2033,8 +2045,6 @@ function App() {
           </button>
           <p className="floating-contact-heading">법무법인 나란 연락처</p>
           <a href="tel:02-2088-1248">대표번호 02-2088-1248</a>
-          <a href="mailto:naranlawb1@gmail.com">이메일 naranlawb1@gmail.com</a>
-          <p>서울 송파구 송파대로167</p>
         </section>
       ) : null}
 
