@@ -9,8 +9,9 @@
   --card-bg: rgba(255, 252, 245, 0.95);
   --shadow: 0 14px 30px rgba(16, 23, 33, 0.12);
   --max-width: 1120px;
-  --quick-apply-reserve: 160px;
+  --quick-apply-reserve: 196px;
   --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .app-shell {
@@ -30,7 +31,8 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 0;
+  height: var(--safe-area-top);
+  background: #fbf7ef;
   z-index: 19;
   pointer-events: none;
 }
@@ -45,9 +47,17 @@
   gap: 20px;
   padding: calc(14px + var(--safe-area-top)) 30px 14px;
   border-bottom: 1px solid rgba(214, 200, 174, 0.7);
-  background: #fbf7ef;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(251, 247, 239, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@supports (-webkit-touch-callout: none) {
+  .top-nav {
+    background: #fbf7ef;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .brand {
@@ -640,14 +650,14 @@ main {
   left: 180px;
   top: clamp(460px, 60vh, 660px);
   width: 310px;
-  animation: expert-fly-in-left 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+  animation: expert-fly-in-left 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
 }
 
 .expert-card-right {
   right: 200px;
   top: clamp(560px, 72vh, 820px);
   width: 230px;
-  animation: expert-fly-in-right 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  animation: expert-fly-in-right 0.95s cubic-bezier(0.16, 1, 0.3, 1) 1s both;
 }
 
 .expert-thumb {
@@ -1119,7 +1129,7 @@ main {
   right: 0;
   bottom: 0;
   z-index: 26;
-  padding: 8px 0 8px;
+  padding: 12px 0 calc(12px + var(--safe-area-bottom));
   border-top: 1px solid rgba(182, 194, 208, 0.78);
   background: linear-gradient(180deg, rgba(243, 247, 252, 0.95) 0%, rgba(232, 239, 248, 0.98) 100%);
   backdrop-filter: blur(10px);
@@ -1129,14 +1139,14 @@ main {
 .quick-apply-inner {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .quick-apply-title {
   margin: 0;
   flex-shrink: 0;
   color: #264463;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -1145,7 +1155,7 @@ main {
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 2px;
+  padding-bottom: 3px;
 }
 
 .quick-apply-form {
@@ -1159,21 +1169,21 @@ main {
 .quick-apply-form input,
 .quick-apply-form textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 48px;
   border: 1px solid rgba(99, 119, 145, 0.32);
   border-radius: 10px;
   background: #f6f9fc;
   color: #304056;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
-  padding: 9px 11px;
+  padding: 11px 12px;
 }
 
 .quick-apply-form textarea {
   resize: none;
-  min-height: 42px;
-  height: 42px;
+  min-height: 48px;
+  height: 48px;
 }
 
 .quick-apply-form input:focus,
@@ -1184,9 +1194,9 @@ main {
 .quick-apply-form button {
   border: none;
   border-radius: 999px;
-  min-height: 42px;
+  min-height: 48px;
   color: #f3f9ff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
@@ -1200,7 +1210,7 @@ main {
 
 .quick-apply-bar-feedback {
   width: min(var(--max-width), calc(100% - 44px));
-  margin: 5px auto 0;
+  margin: 8px auto 0;
   font-size: 12px;
   line-height: 1.35;
 }
@@ -1211,6 +1221,95 @@ main {
 
 .quick-apply-bar-feedback-error {
   color: #b91f3e;
+}
+
+.floating-actions {
+  position: fixed;
+  right: 20px;
+  bottom: calc(var(--quick-apply-reserve) + 20px);
+  z-index: 27;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.floating-action-btn {
+  border: none;
+  border-radius: 999px;
+  min-width: 122px;
+  height: 50px;
+  padding: 0 16px;
+  color: #f6fbff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 14px 24px rgba(18, 36, 58, 0.26);
+  animation: floating-bob 2.8s ease-in-out infinite;
+}
+
+.floating-action-btn-contact {
+  background: linear-gradient(135deg, #3f6f9e 0%, #2f567c 100%);
+}
+
+.floating-action-btn-form {
+  background: linear-gradient(135deg, #4c82af 0%, #365f87 100%);
+  animation-delay: 0.32s;
+}
+
+.floating-action-btn:hover,
+.floating-action-btn:focus-visible {
+  filter: brightness(1.05);
+  box-shadow: 0 18px 28px rgba(18, 36, 58, 0.3);
+}
+
+.floating-contact-popup {
+  position: fixed;
+  right: 20px;
+  bottom: calc(var(--quick-apply-reserve) + 148px);
+  z-index: 28;
+  width: min(320px, calc(100vw - 32px));
+  border: 1px solid rgba(155, 175, 198, 0.78);
+  border-radius: 16px;
+  background: rgba(246, 250, 255, 0.98);
+  box-shadow: 0 20px 30px rgba(16, 31, 50, 0.24);
+  padding: 16px 14px 14px;
+  display: grid;
+  gap: 7px;
+}
+
+.floating-contact-close {
+  justify-self: end;
+  border: none;
+  background: transparent;
+  color: #5b6d81;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.floating-contact-heading {
+  margin: 0;
+  color: #24364c;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.floating-contact-popup a,
+.floating-contact-popup p {
+  margin: 0;
+  color: #435a74;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@keyframes floating-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .companies-page {
@@ -1591,11 +1690,11 @@ main {
 
 @media (max-width: 900px) {
   :root {
-    --quick-apply-reserve: 146px;
+    --quick-apply-reserve: 184px;
   }
 
   .app-shell::before {
-    height: calc(var(--safe-area-top) + 68px);
+    height: var(--safe-area-top);
     background: #fbf7ef;
   }
 
@@ -1962,7 +2061,7 @@ main {
   }
 
   .quick-apply-bar {
-    padding: 8px 0 7px;
+    padding: 10px 0 calc(10px + var(--safe-area-bottom));
   }
 
   .quick-apply-inner {
@@ -1981,25 +2080,44 @@ main {
 
   .quick-apply-form input,
   .quick-apply-form textarea {
-    min-height: 38px;
+    min-height: 42px;
     font-size: 13px;
-    padding: 7px 9px;
+    padding: 8px 9px;
     border-radius: 9px;
   }
 
   .quick-apply-form textarea {
-    min-height: 38px;
-    height: 38px;
+    min-height: 42px;
+    height: 42px;
   }
 
   .quick-apply-form button {
-    min-height: 38px;
+    min-height: 42px;
     font-size: 13px;
   }
 
   .quick-apply-bar-feedback {
     margin-top: 4px;
     font-size: 11px;
+  }
+
+  .floating-actions {
+    right: 14px;
+    bottom: calc(var(--quick-apply-reserve) + 14px);
+    gap: 10px;
+  }
+
+  .floating-action-btn {
+    min-width: 112px;
+    height: 46px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .floating-contact-popup {
+    right: 14px;
+    bottom: calc(var(--quick-apply-reserve) + 130px);
+    width: min(292px, calc(100vw - 28px));
   }
 
   .companies-banner-wrap {
@@ -2138,11 +2256,11 @@ main {
 
 @media (max-width: 600px) {
   :root {
-    --quick-apply-reserve: 138px;
+    --quick-apply-reserve: 170px;
   }
 
   .app-shell::before {
-    height: calc(var(--safe-area-top) + 58px);
+    height: var(--safe-area-top);
   }
 
   .menu a {
@@ -2263,6 +2381,33 @@ main {
     width: calc(100% - 24px);
   }
 
+  .floating-actions {
+    right: 10px;
+    bottom: calc(var(--quick-apply-reserve) + 10px);
+  }
+
+  .floating-action-btn {
+    min-width: 104px;
+    height: 42px;
+    font-size: 12px;
+  }
+
+  .floating-contact-popup {
+    right: 10px;
+    bottom: calc(var(--quick-apply-reserve) + 122px);
+    width: min(280px, calc(100vw - 20px));
+    padding: 14px 12px 12px;
+  }
+
+  .floating-contact-heading {
+    font-size: 14px;
+  }
+
+  .floating-contact-popup a,
+  .floating-contact-popup p {
+    font-size: 13px;
+  }
+
   .companies-grid {
     grid-template-columns: 1fr;
   }
@@ -2297,6 +2442,10 @@ main {
 
   .expert-card-left,
   .expert-card-right {
+    animation: none;
+  }
+
+  .floating-action-btn {
     animation: none;
   }
 }

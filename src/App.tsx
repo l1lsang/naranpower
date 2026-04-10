@@ -452,6 +452,7 @@ function App() {
   const [consultationBusy, setConsultationBusy] = useState(false)
   const [consultationNotice, setConsultationNotice] = useState('')
   const [consultationError, setConsultationError] = useState('')
+  const [showFloatingContact, setShowFloatingContact] = useState(false)
 
   const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
@@ -492,6 +493,10 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId)
     }
+  }, [route])
+
+  useEffect(() => {
+    setShowFloatingContact(false)
   }, [route])
 
   useEffect(() => {
@@ -1006,9 +1011,7 @@ function App() {
     }
   }
 
-  const handleConsultingNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-
+  const moveToQuickFormSection = () => {
     if (route === 'home') {
       quickFormSectionRef.current?.scrollIntoView({
         behavior: 'smooth',
@@ -1019,6 +1022,11 @@ function App() {
 
     shouldScrollToQuickFormRef.current = true
     window.location.hash = '#/'
+  }
+
+  const handleConsultingNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    moveToQuickFormSection()
   }
 
   const handleConsultationSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1997,6 +2005,38 @@ function App() {
           <p className="quick-apply-bar-feedback quick-apply-bar-feedback-error">{consultationError}</p>
         ) : null}
       </section>
+
+      <div className="floating-actions" aria-label="빠른 실행 버튼">
+        <button
+          type="button"
+          className="floating-action-btn floating-action-btn-contact"
+          onClick={() => setShowFloatingContact((previous) => !previous)}
+          aria-expanded={showFloatingContact}
+          aria-controls="floating-contact-popup"
+        >
+          연락처
+        </button>
+        <button type="button" className="floating-action-btn floating-action-btn-form" onClick={moveToQuickFormSection}>
+          상담폼 이동
+        </button>
+      </div>
+
+      {showFloatingContact ? (
+        <section className="floating-contact-popup" id="floating-contact-popup" role="dialog" aria-label="연락처 안내">
+          <button
+            type="button"
+            className="floating-contact-close"
+            onClick={() => setShowFloatingContact(false)}
+            aria-label="연락처 팝업 닫기"
+          >
+            닫기
+          </button>
+          <p className="floating-contact-heading">법무법인 나란 연락처</p>
+          <a href="tel:02-2088-1248">대표번호 02-2088-1248</a>
+          <a href="mailto:naranlawb1@gmail.com">이메일 naranlawb1@gmail.com</a>
+          <p>서울 송파구 송파대로167</p>
+        </section>
+      ) : null}
 
       <footer className="site-footer">
         <div className="site-footer-inner section-wrap">
