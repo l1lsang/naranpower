@@ -1948,6 +1948,56 @@ function App() {
         )}
       </main>
 
+      <section className="quick-apply-bar" aria-label="하단 고정 간편 신청">
+        <div className="section-wrap quick-apply-inner">
+          <p className="quick-apply-title">간편 신청</p>
+
+          <div className="quick-apply-scroll">
+            <form className="quick-apply-form" onSubmit={handleConsultationSubmit}>
+              <input
+                type="text"
+                value={consultationNameInput}
+                onChange={(event) => setConsultationNameInput(event.target.value)}
+                placeholder="이름"
+                maxLength={CONSULTATION_LIMITS.name}
+                autoComplete="name"
+                required
+                disabled={consultationBusy}
+              />
+              <input
+                type="tel"
+                value={consultationPhoneInput}
+                onChange={(event) => setConsultationPhoneInput(event.target.value)}
+                placeholder="연락처"
+                maxLength={CONSULTATION_LIMITS.phone}
+                autoComplete="tel"
+                required
+                disabled={consultationBusy}
+              />
+              <textarea
+                rows={1}
+                value={consultationDetailsInput}
+                onChange={(event) => setConsultationDetailsInput(event.target.value)}
+                placeholder="피해받은 내용"
+                maxLength={CONSULTATION_LIMITS.details}
+                required
+                disabled={consultationBusy}
+              />
+              <button type="submit" disabled={consultationBusy}>
+                {consultationBusy ? '전송중...' : '바로상담'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {consultationNotice ? (
+          <p className="quick-apply-bar-feedback quick-apply-bar-feedback-success">{consultationNotice}</p>
+        ) : null}
+        {consultationError ? (
+          <p className="quick-apply-bar-feedback quick-apply-bar-feedback-error">{consultationError}</p>
+        ) : null}
+      </section>
+
       <footer className="site-footer">
         <div className="site-footer-inner section-wrap">
           <img src={logoImg} alt="법무법인 나란 로고" className="footer-logo" />

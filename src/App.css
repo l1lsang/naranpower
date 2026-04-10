@@ -9,10 +9,12 @@
   --card-bg: rgba(255, 252, 245, 0.95);
   --shadow: 0 14px 30px rgba(16, 23, 33, 0.12);
   --max-width: 1120px;
+  --quick-apply-reserve: 160px;
 }
 
 .app-shell {
   min-height: 100vh;
+  padding-bottom: var(--quick-apply-reserve);
   color: var(--ink-soft);
   background:
     radial-gradient(circle at 4% 0%, rgba(180, 138, 66, 0.24), transparent 36%),
@@ -1097,6 +1099,106 @@ main {
   color: #bc243f;
 }
 
+.quick-apply-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 26;
+  padding: 8px 0 8px;
+  border-top: 1px solid rgba(182, 194, 208, 0.78);
+  background: linear-gradient(180deg, rgba(243, 247, 252, 0.95) 0%, rgba(232, 239, 248, 0.98) 100%);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -10px 22px rgba(20, 33, 50, 0.14);
+}
+
+.quick-apply-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quick-apply-title {
+  margin: 0;
+  flex-shrink: 0;
+  color: #264463;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.quick-apply-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.quick-apply-form {
+  min-width: 840px;
+  display: grid;
+  grid-template-columns: 150px 180px minmax(290px, 1fr) 128px;
+  align-items: center;
+  gap: 8px;
+}
+
+.quick-apply-form input,
+.quick-apply-form textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(99, 119, 145, 0.32);
+  border-radius: 10px;
+  background: #f6f9fc;
+  color: #304056;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 9px 11px;
+}
+
+.quick-apply-form textarea {
+  resize: none;
+  min-height: 42px;
+  height: 42px;
+}
+
+.quick-apply-form input:focus,
+.quick-apply-form textarea:focus {
+  outline: 2px solid rgba(61, 121, 166, 0.26);
+}
+
+.quick-apply-form button {
+  border: none;
+  border-radius: 999px;
+  min-height: 42px;
+  color: #f3f9ff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #4c80ae 0%, #325f87 100%);
+}
+
+.quick-apply-form button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.quick-apply-bar-feedback {
+  width: min(var(--max-width), calc(100% - 44px));
+  margin: 5px auto 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.quick-apply-bar-feedback-success {
+  color: #1d7a3b;
+}
+
+.quick-apply-bar-feedback-error {
+  color: #b91f3e;
+}
+
 .companies-page {
   margin-top: 0;
   background: #efefef;
@@ -1474,6 +1576,10 @@ main {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --quick-apply-reserve: 146px;
+  }
+
   .top-nav {
     padding: 12px 18px;
     flex-wrap: wrap;
@@ -1832,6 +1938,47 @@ main {
     font-size: 13px;
   }
 
+  .quick-apply-bar {
+    padding: 8px 0 7px;
+  }
+
+  .quick-apply-inner {
+    gap: 9px;
+  }
+
+  .quick-apply-title {
+    font-size: 13px;
+  }
+
+  .quick-apply-form {
+    min-width: 720px;
+    grid-template-columns: 118px 150px minmax(250px, 1fr) 110px;
+    gap: 6px;
+  }
+
+  .quick-apply-form input,
+  .quick-apply-form textarea {
+    min-height: 38px;
+    font-size: 13px;
+    padding: 7px 9px;
+    border-radius: 9px;
+  }
+
+  .quick-apply-form textarea {
+    min-height: 38px;
+    height: 38px;
+  }
+
+  .quick-apply-form button {
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .quick-apply-bar-feedback {
+    margin-top: 4px;
+    font-size: 11px;
+  }
+
   .companies-banner-wrap {
     height: clamp(180px, 52vw, 270px);
   }
@@ -1967,6 +2114,10 @@ main {
 }
 
 @media (max-width: 600px) {
+  :root {
+    --quick-apply-reserve: 138px;
+  }
+
   .menu a {
     font-size: 13px;
   }
@@ -2056,6 +2207,33 @@ main {
     width: 160px;
     height: 48px;
     font-size: 17px;
+  }
+
+  .quick-apply-inner {
+    gap: 7px;
+  }
+
+  .quick-apply-title {
+    font-size: 12px;
+  }
+
+  .quick-apply-form {
+    min-width: 620px;
+    grid-template-columns: 106px 132px minmax(220px, 1fr) 96px;
+    gap: 6px;
+  }
+
+  .quick-apply-form input,
+  .quick-apply-form textarea {
+    font-size: 12px;
+  }
+
+  .quick-apply-form button {
+    font-size: 12px;
+  }
+
+  .quick-apply-bar-feedback {
+    width: calc(100% - 24px);
   }
 
   .companies-grid {
