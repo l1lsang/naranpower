@@ -1565,7 +1565,7 @@ main {
 
   .hero-section {
     min-height: clamp(620px, 150vw, 780px);
-    padding: 58px 0 clamp(520px, 112vw, 780px);
+    padding: 58px 0 clamp(760px, 165vw, 1120px);
     background-position: 52% bottom, center center;
   }
 
@@ -1599,7 +1599,7 @@ main {
     left: 0;
     right: 0;
     bottom: clamp(16px, 4.5vw, 28px);
-    height: clamp(460px, 105vw, 650px);
+    height: clamp(760px, 165vw, 1050px);
     display: block;
     margin-top: 0;
   }
@@ -1611,13 +1611,13 @@ main {
 
   .expert-card-left {
     left: clamp(10px, 5.5vw, 38px);
-    top: clamp(230px, 55vw, 340px);
+    top: clamp(460px, 102vw, 680px);
     width: clamp(170px, 45vw, 250px);
   }
 
   .expert-card-right {
     right: clamp(10px, 5.5vw, 34px);
-    top: clamp(360px, 85vw, 520px);
+    top: clamp(620px, 138vw, 900px);
     width: clamp(148px, 37vw, 210px);
   }
 
@@ -1975,11 +1975,27 @@ main {
     line-height: 1.34;
   }
 
+  .hero-section {
+    padding: 54px 0 clamp(860px, 235vw, 1280px);
+  }
+
   .hero-cta {
     min-width: 190px;
     height: 50px;
     padding: 0 18px;
     font-size: 19px;
+  }
+
+  .hero-experts {
+    height: clamp(860px, 230vw, 1180px);
+  }
+
+  .expert-card-left {
+    top: clamp(440px, 124vw, 620px);
+  }
+
+  .expert-card-right {
+    top: clamp(600px, 168vw, 860px);
   }
 
   .rolling-head h2 {
