@@ -10,9 +10,11 @@
   --shadow: 0 14px 30px rgba(16, 23, 33, 0.12);
   --max-width: 1120px;
   --quick-apply-reserve: 160px;
+  --safe-area-top: env(safe-area-inset-top, 0px);
 }
 
 .app-shell {
+  position: relative;
   min-height: 100vh;
   padding-bottom: var(--quick-apply-reserve);
   color: var(--ink-soft);
@@ -20,6 +22,17 @@
     radial-gradient(circle at 4% 0%, rgba(180, 138, 66, 0.24), transparent 36%),
     radial-gradient(circle at 96% 14%, rgba(35, 56, 86, 0.2), transparent 34%),
     linear-gradient(180deg, #f7f2e8 0%, #fcf9f3 65%, #f6efe1 100%);
+}
+
+.app-shell::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 19;
+  pointer-events: none;
 }
 
 .top-nav {
@@ -30,10 +43,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 14px 30px;
+  padding: calc(14px + var(--safe-area-top)) 30px 14px;
   border-bottom: 1px solid rgba(214, 200, 174, 0.7);
-  background: var(--nav-bg);
+  background: #fbf7ef;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .brand {
@@ -1580,10 +1594,19 @@ main {
     --quick-apply-reserve: 146px;
   }
 
+  .app-shell::before {
+    height: calc(var(--safe-area-top) + 68px);
+    background: #fbf7ef;
+  }
+
   .top-nav {
     padding: 12px 18px;
+    padding-top: calc(12px + var(--safe-area-top));
     flex-wrap: wrap;
     justify-content: center;
+    background: #fbf7ef;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .menu {
@@ -2116,6 +2139,10 @@ main {
 @media (max-width: 600px) {
   :root {
     --quick-apply-reserve: 138px;
+  }
+
+  .app-shell::before {
+    height: calc(var(--safe-area-top) + 58px);
   }
 
   .menu a {
