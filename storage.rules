@@ -1,0 +1,60 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasAdminDoc(uid) {
+      return firestore.exists(/databases/(default)/documents/adminUsers/$(uid));
+    }
+
+    function hasAdminRole(uid) {
+      return signedIn()
+        && hasAdminDoc(uid)
+        && (
+          firestore.get(/databases/(default)/documents/adminUsers/$(uid)).data.isAdmin == true
+          || firestore.get(/databases/(default)/documents/adminUsers/$(uid)).data.isStaff == true
+        );
+    }
+
+    function isAdmin() {
+      return signedIn() && hasAdminRole(request.auth.uid);
+    }
+
+    function isValidImageUpload() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size <= 10 * 1024 * 1024;
+    }
+
+    function canCreateOrUpdateOwnFolder(uid) {
+      return isAdmin()
+        && request.auth.uid == uid
+        && isValidImageUpload();
+    }
+
+    function canDeleteManagedImage() {
+      return isAdmin();
+    }
+
+    // 홈 롤링 업로드 이미지
+    match /rollingCases/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if canCreateOrUpdateOwnFolder(uid);
+      allow delete: if canDeleteManagedImage();
+    }
+
+    // 사기업체 업로드 이미지
+    match /companyCases/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if canCreateOrUpdateOwnFolder(uid);
+      allow delete: if canDeleteManagedImage();
+    }
+
+    // 그 외 경로 차단
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

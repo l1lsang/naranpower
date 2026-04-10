@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function hasText(data, field, minLen, maxLen) {
+      return field in data
+        && data[field] is string
+        && data[field].size() >= minLen
+        && data[field].size() <= maxLen;
+    }
+
+    function hasAdminDoc(uid) {
+      return exists(/databases/$(database)/documents/adminUsers/$(uid));
+    }
+
+    function hasAdminRole(uid) {
+      return hasAdminDoc(uid)
+        && (
+          get(/databases/$(database)/documents/adminUsers/$(uid)).data.isAdmin == true
+          || get(/databases/$(database)/documents/adminUsers/$(uid)).data.isStaff == true
+        );
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && hasAdminRole(request.auth.uid);
+    }
+
+    function validAdminProfileCreate(uid) {
+      return isSelf(uid)
+        && request.resource.data.keys().hasOnly([
+          'email',
+          'isAdmin',
+          'isStaff',
+          'approvedByInviteCode',
+          'migratedFrom',
+          'createdAt',
+          'updatedAt'
+        ])
+        && hasText(request.resource.data, 'email', 3, 320)
+        && request.resource.data.isAdmin == true
+        && request.resource.data.isStaff == true
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && (!('approvedByInviteCode' in request.resource.data) || request.resource.data.approvedByInviteCode is bool)
+        && (!('migratedFrom' in request.resource.data) || request.resource.data.migratedFrom is string);
+    }
+
+    function validAdminProfileUpdate(uid) {
+      return isSelf(uid)
+        && request.resource.data.keys().hasOnly([
+          'email',
+          'isAdmin',
+          'isStaff',
+          'approvedByInviteCode',
+          'migratedFrom',
+          'createdAt',
+          'updatedAt'
+        ])
+        && hasText(request.resource.data, 'email', 3, 320)
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.isAdmin == true
+        && request.resource.data.isStaff == true
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt is timestamp
+        && (!('approvedByInviteCode' in request.resource.data) || request.resource.data.approvedByInviteCode is bool)
+        && (!('migratedFrom' in request.resource.data) || request.resource.data.migratedFrom is string);
+    }
+
+    function hasImageField(data) {
+      return hasText(data, 'image', 1, 2000) || hasText(data, 'imageUrl', 1, 2000);
+    }
+
+    function validRollingCase(data) {
+      return data.keys().hasOnly([
+          'category',
+          'title',
+          'result',
+          'image',
+          'imageUrl',
+          'createdAt',
+          'createdBy'
+        ])
+        && hasText(data, 'category', 1, 40)
+        && hasText(data, 'title', 1, 120)
+        && hasText(data, 'result', 1, 60)
+        && hasImageField(data)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.createdBy == request.auth.uid;
+    }
+
+    function validCompanyCase(data) {
+      return data.keys().hasOnly([
+          'name',
+          'service',
+          'description',
+          'image',
+          'imageUrl',
+          'createdAt',
+          'createdBy'
+        ])
+        && hasText(data, 'name', 1, 80)
+        && hasText(data, 'service', 1, 80)
+        && hasText(data, 'description', 1, 2000)
+        && hasImageField(data)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.createdBy == request.auth.uid;
+    }
+
+    // 관리자 계정 문서
+    // 현재 앱 구조(클라이언트에서 회원가입 후 adminUsers 생성)와 호환되는 규칙.
+    match /adminUsers/{uid} {
+      allow read: if isSelf(uid);
+      allow create: if validAdminProfileCreate(uid);
+      allow update: if validAdminProfileUpdate(uid);
+      allow delete: if false;
+    }
+
+    // 레거시 호환(읽기만)
+    match /staffUsers/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+
+    // 홈 롤링
+    match /rollingCases/{docId} {
+      allow read: if true;
+      allow create: if isAdmin() && validRollingCase(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // 사기업체
+    match /companyCases/{docId} {
+      allow read: if true;
+      allow create: if isAdmin() && validCompanyCase(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // 빠른 상담 접수 데이터 (Vercel API가 Admin SDK로 저장)
+    match /consultationRequests/{docId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // 그 외 전부 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
