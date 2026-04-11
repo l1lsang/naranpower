@@ -35,6 +35,7 @@ import icon3Img from './assets/icon3.png'
 import icon4Img from './assets/icon4.png'
 import ssImg from './assets/ss.png'
 import logoImg from './assets/logo.png'
+import kakaoIconImg from './assets/kakao.png'
 import law1Img from './assets/law1.png'
 import law2Img from './assets/law2.png'
 import law3Img from './assets/law3.png'
@@ -87,6 +88,9 @@ const ADMIN_INVITE_CODE = (
 
 const CONSULTATION_API_URL = (import.meta.env.VITE_CONSULTATION_API_URL ?? '').trim()
 const POWERLINK_GENERATE_API_URL = (import.meta.env.VITE_POWERLINK_GENERATE_API_URL ?? '').trim()
+const KAKAO_OPEN_CHAT_URL = (import.meta.env.VITE_KAKAO_OPEN_CHAT_URL ?? 'https://open.kakao.com/').trim()
+const CONTACT_PHONE_NUMBER = '02-2088-1248'
+const CONTACT_PHONE_TEL = `tel:${CONTACT_PHONE_NUMBER.replace(/[^0-9+]/g, '')}`
 
 const normalizePowerlinkPathPrefix = (prefix: string): string => {
   const trimmed = prefix.trim()
@@ -452,7 +456,6 @@ function App() {
   const [consultationBusy, setConsultationBusy] = useState(false)
   const [consultationNotice, setConsultationNotice] = useState('')
   const [consultationError, setConsultationError] = useState('')
-  const [showFloatingContact, setShowFloatingContact] = useState(false)
 
   const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
@@ -493,10 +496,6 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId)
     }
-  }, [route])
-
-  useEffect(() => {
-    setShowFloatingContact(false)
   }, [route])
 
   useEffect(() => {
@@ -1425,29 +1424,6 @@ function App() {
             온라인상담
           </a>
 
-          {isStaff ? (
-            <>
-              <button
-                type="button"
-                className="nav-action-btn nav-action-primary"
-                onClick={() => setAdminOpen((previous) => !previous)}
-              >
-                {adminOpen ? '관리자 닫기' : '관리자 창'}
-              </button>
-              <button type="button" className="nav-action-btn" onClick={handleSignOut}>
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="nav-action-btn nav-action-primary"
-              onClick={() => openAuthModal('login')}
-              disabled={isStaffCheckPending}
-            >
-              {isStaffCheckPending ? '권한확인중' : '관리자 로그인'}
-            </button>
-          )}
         </nav>
       </header>
 
@@ -2007,13 +1983,19 @@ function App() {
       </section>
 
       <div className="floating-actions" aria-label="빠른 실행 버튼">
-        <button
-          type="button"
-          className="floating-action-btn floating-action-btn-contact"
-          onClick={() => setShowFloatingContact((previous) => !previous)}
-          aria-expanded={showFloatingContact}
-          aria-controls="floating-contact-popup"
+        <a
+          className="floating-action-btn floating-action-btn-kakao"
+          href={KAKAO_OPEN_CHAT_URL}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="카카오톡 오픈채팅방 열기"
         >
+          <span className="floating-action-icon" aria-hidden="true">
+            <img src={kakaoIconImg} alt="" />
+          </span>
+        </a>
+
+        <a className="floating-action-btn floating-action-btn-phone" href={CONTACT_PHONE_TEL} aria-label="대표번호로 전화">
           <span className="floating-action-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
               <path
@@ -2026,27 +2008,8 @@ function App() {
               />
             </svg>
           </span>
-          <span>연락처</span>
-        </button>
-        <button type="button" className="floating-action-btn floating-action-btn-form" onClick={moveToQuickFormSection}>
-          상담폼 이동
-        </button>
+        </a>
       </div>
-
-      {showFloatingContact ? (
-        <section className="floating-contact-popup" id="floating-contact-popup" role="dialog" aria-label="연락처 안내">
-          <button
-            type="button"
-            className="floating-contact-close"
-            onClick={() => setShowFloatingContact(false)}
-            aria-label="연락처 팝업 닫기"
-          >
-            닫기
-          </button>
-          <p className="floating-contact-heading">법무법인 나란 연락처</p>
-          <a href="tel:02-2088-1248">대표번호 02-2088-1248</a>
-        </section>
-      ) : null}
 
       <footer className="site-footer">
         <div className="site-footer-inner section-wrap">
@@ -2060,7 +2023,33 @@ function App() {
             본사무소 : 서울 송파구 송파대로167 (문정동 651) | 분사무소 : 서울 도봉구 도봉로164길 43
             무궁화빌딩 402호
           </p>
-          <p className="footer-meta">TEL : 02-2088-1248 | FAX : 02-2054-3451 | 이메일 : naranlawb1@gmail.com</p>
+          <p className="footer-meta">TEL : {CONTACT_PHONE_NUMBER} | FAX : 02-2054-3451 | 이메일 : naranlawb1@gmail.com</p>
+
+          <div className="footer-admin-actions">
+            {isStaff ? (
+              <>
+                <button
+                  type="button"
+                  className="footer-admin-btn footer-admin-btn-primary"
+                  onClick={() => setAdminOpen((previous) => !previous)}
+                >
+                  {adminOpen ? '관리자 닫기' : '관리자 창'}
+                </button>
+                <button type="button" className="footer-admin-btn" onClick={handleSignOut}>
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="footer-admin-btn footer-admin-btn-primary"
+                onClick={() => openAuthModal('login')}
+                disabled={isStaffCheckPending}
+              >
+                {isStaffCheckPending ? '권한확인중' : '관리자 로그인'}
+              </button>
+            )}
+          </div>
         </div>
       </footer>
 
@@ -2073,7 +2062,7 @@ function App() {
 
             <h3>관리자 전용 계정</h3>
             <p className="auth-modal-copy">
-              온라인상담 메뉴 오른쪽 로그인 바에서 관리자만 접속할 수 있습니다.
+              footer의 관리자 로그인 버튼을 통해 관리자만 접속할 수 있습니다.
             </p>
 
             <div className="auth-mode-tabs" role="tablist" aria-label="인증 방식">
