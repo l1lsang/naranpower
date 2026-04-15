@@ -91,7 +91,7 @@ const POWERLINK_GENERATE_API_URL = (import.meta.env.VITE_POWERLINK_GENERATE_API_
 const KAKAO_OPEN_CHAT_URL = (import.meta.env.VITE_KAKAO_OPEN_CHAT_URL ?? 'https://open.kakao.com/').trim()
 const CONTACT_PHONE_NUMBER = '02-2088-1248'
 const CONTACT_PHONE_TEL = `tel:${CONTACT_PHONE_NUMBER.replace(/[^0-9+]/g, '')}`
-const HERO_TYPING_TEXT = '나란에서 해결할 수 없다면\n그 어디서도 해결할 수 없습니다.'
+const HERO_TYPING_TEXT = '나란에서 해결할 수 없다면\n그\u00A0어디서도\u00A0해결할\u00A0수\u00A0없습니다.'
 
 const normalizePowerlinkPathPrefix = (prefix: string): string => {
   const trimmed = prefix.trim()
@@ -587,11 +587,11 @@ function App() {
       }
 
       const currentCharacter = HERO_TYPING_TEXT[typingIndex - 1]
-      const nextDelay = currentCharacter === '\n' ? 280 : currentCharacter === ' ' ? 40 : 82
+      const nextDelay = currentCharacter === '\n' ? 420 : currentCharacter === ' ' ? 65 : 105
       timeoutId = window.setTimeout(typeNextCharacter, nextDelay)
     }
 
-    timeoutId = window.setTimeout(typeNextCharacter, 260)
+    timeoutId = window.setTimeout(typeNextCharacter, 340)
 
     return () => {
       window.clearTimeout(timeoutId)
