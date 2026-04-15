@@ -605,6 +605,30 @@ main {
   white-space: nowrap;
 }
 
+.hero-typing-text {
+  white-space: pre-line;
+}
+
+.hero-typing-cursor {
+  display: inline-block;
+  margin-left: 0.08em;
+  color: #7ed9ff;
+  font-weight: 500;
+  animation: hero-cursor-blink 1s steps(1, end) infinite;
+}
+
+@keyframes hero-cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .hero-keyword-highlight {
   margin: clamp(14px, 1.8vw, 24px) 0 0;
   color: #78d5ff;

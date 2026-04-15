@@ -91,6 +91,7 @@ const POWERLINK_GENERATE_API_URL = (import.meta.env.VITE_POWERLINK_GENERATE_API_
 const KAKAO_OPEN_CHAT_URL = (import.meta.env.VITE_KAKAO_OPEN_CHAT_URL ?? 'https://open.kakao.com/').trim()
 const CONTACT_PHONE_NUMBER = '02-2088-1248'
 const CONTACT_PHONE_TEL = `tel:${CONTACT_PHONE_NUMBER.replace(/[^0-9+]/g, '')}`
+const HERO_TYPING_TEXT = '나란에서 해결할 수 없다면\n그 어디서도 해결할 수 없습니다.'
 
 const normalizePowerlinkPathPrefix = (prefix: string): string => {
   const trimmed = prefix.trim()
@@ -503,6 +504,7 @@ function App() {
 
   const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
+  const [heroTypedText, setHeroTypedText] = useState('')
 
   const landingPath = window.location.pathname || '/'
   const landingToken = useMemo(() => getPowerlinkTokenFromPath(landingPath), [landingPath])
@@ -563,6 +565,36 @@ function App() {
 
     return () => {
       window.cancelAnimationFrame(frameId)
+    }
+  }, [route])
+
+  useEffect(() => {
+    if (route !== 'home') {
+      setHeroTypedText(HERO_TYPING_TEXT)
+      return
+    }
+
+    let timeoutId = 0
+    let typingIndex = 0
+    setHeroTypedText('')
+
+    const typeNextCharacter = () => {
+      typingIndex += 1
+      setHeroTypedText(HERO_TYPING_TEXT.slice(0, typingIndex))
+
+      if (typingIndex >= HERO_TYPING_TEXT.length) {
+        return
+      }
+
+      const currentCharacter = HERO_TYPING_TEXT[typingIndex - 1]
+      const nextDelay = currentCharacter === '\n' ? 280 : currentCharacter === ' ' ? 40 : 82
+      timeoutId = window.setTimeout(typeNextCharacter, nextDelay)
+    }
+
+    timeoutId = window.setTimeout(typeNextCharacter, 260)
+
+    return () => {
+      window.clearTimeout(timeoutId)
     }
   }, [route])
 
@@ -1760,20 +1792,14 @@ function App() {
                   {landingPowerlinkKeyword ? (
                     <p className="hero-keyword-highlight">{landingPowerlinkKeyword}</p>
                   ) : null}
-                  <h1 className={landingPowerlinkKeyword ? 'hero-title-with-keyword' : undefined}>
-                    {landingPowerlinkKeyword ? (
-                      <>
-                        나란에서 해결 할 수 없다면
-                        <br />
-                        그 어디서도 해결 할 수 없습니다.
-                      </>
-                    ) : (
-                      <>
-                        나란에서 해결 할 수 없다면
-                        <br />
-                        그 어디서도 해결 할 수 없습니다.
-                      </>
-                    )}
+                  <h1
+                    aria-label="나란에서 해결할 수 없다면 그 어디서도 해결할 수 없습니다."
+                    className={landingPowerlinkKeyword ? 'hero-title-with-keyword' : undefined}
+                  >
+                    <span className="hero-typing-text">{heroTypedText || '\u00A0'}</span>
+                    <span className="hero-typing-cursor" aria-hidden="true">
+                      |
+                    </span>
                   </h1>
                 </div>
 
