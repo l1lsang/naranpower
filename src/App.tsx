@@ -1670,7 +1670,7 @@ function App() {
                   <h1 className={landingPowerlinkKeyword ? 'hero-title-with-keyword' : undefined}>
                     {landingPowerlinkKeyword ? (
                       <>
-                        {landingPowerlinkKeyword}를 나란에서 해결 할 수 없다면
+                        나란에서 해결 할 수 없다면
                         <br />
                         그 어디서도 해결 할 수 없습니다.
                       </>
