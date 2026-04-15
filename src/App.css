@@ -606,7 +606,7 @@ main {
 }
 
 .hero-typing-text {
-  white-space: pre-line;
+  white-space: pre;
 }
 
 .hero-typing-cursor {
