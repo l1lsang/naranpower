@@ -464,6 +464,7 @@ function App() {
   const rollingImageInputRef = useRef<HTMLInputElement | null>(null)
   const companyImageInputRef = useRef<HTMLInputElement | null>(null)
   const quickFormSectionRef = useRef<HTMLElement | null>(null)
+  const heroStatsBarRef = useRef<HTMLDivElement | null>(null)
   const shouldScrollToQuickFormRef = useRef(false)
   const adminEnrollmentInProgressRef = useRef(false)
 
@@ -511,6 +512,7 @@ function App() {
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
   const [heroTypedText, setHeroTypedText] = useState('')
   const [heroStatValues, setHeroStatValues] = useState<number[]>(() => HERO_STAT_ITEMS.map(() => 0))
+  const [heroStatsShouldAnimate, setHeroStatsShouldAnimate] = useState(false)
 
   const landingPath = window.location.pathname || '/'
   const landingToken = useMemo(() => getPowerlinkTokenFromPath(landingPath), [landingPath])
@@ -606,6 +608,51 @@ function App() {
 
   useEffect(() => {
     if (route !== 'home') {
+      setHeroStatsShouldAnimate(false)
+      setHeroStatValues(HERO_STAT_ITEMS.map(() => 0))
+      return
+    }
+
+    setHeroStatsShouldAnimate(false)
+    setHeroStatValues(HERO_STAT_ITEMS.map(() => 0))
+    const statsBarElement = heroStatsBarRef.current
+
+    if (!statsBarElement) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isVisible = entries.some((entry) => entry.isIntersecting)
+
+        if (!isVisible) {
+          return
+        }
+
+        setHeroStatsShouldAnimate(true)
+        observer.disconnect()
+      },
+      {
+        threshold: 0.42,
+        rootMargin: '0px 0px -6% 0px',
+      },
+    )
+
+    observer.observe(statsBarElement)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [route])
+
+  useEffect(() => {
+    if (route !== 'home' || !heroStatsShouldAnimate) {
+      return
+    }
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (prefersReducedMotion) {
       setHeroStatValues(HERO_STAT_ITEMS.map((item) => item.value))
       return
     }
@@ -613,7 +660,6 @@ function App() {
     let frameId = 0
     let animationStart = 0
     const durationMs = 1900
-    setHeroStatValues(HERO_STAT_ITEMS.map(() => 0))
 
     const animate = (now: number) => {
       if (!animationStart) {
@@ -634,7 +680,7 @@ function App() {
     return () => {
       window.cancelAnimationFrame(frameId)
     }
-  }, [route])
+  }, [route, heroStatsShouldAnimate])
 
   useEffect(() => {
     if (route !== 'home') {
@@ -1871,7 +1917,7 @@ function App() {
                   </article>
                 </div>
 
-                <div className="hero-stats-bar" aria-label="상담 및 해결 통계">
+                <div className="hero-stats-bar" ref={heroStatsBarRef} aria-label="상담 및 해결 통계">
                   <ul className="hero-stats-list">
                     {HERO_STAT_ITEMS.map((item, index) => (
                       <li className="hero-stats-item" key={item.label}>
