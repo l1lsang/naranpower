@@ -700,8 +700,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !isStaff) {
-      setPowerlinkLinks([])
+    if (!isFirebaseConfigured) {
+      setRollingCases([])
       return
     }
 
@@ -743,7 +743,7 @@ function App() {
     return () => {
       unsubscribe()
     }
-  }, [isStaff])
+  }, [])
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
