@@ -164,7 +164,13 @@ const resolveRoute = (pathname: string): PageRoute => {
 }
 
 const resolveLegacyHashRoute = (hash: string): PageRoute | null => {
-  const cleaned = hash.replace(/^#/, '').trim().toLowerCase()
+  const rawHash = hash.trim()
+
+  if (!rawHash) {
+    return null
+  }
+
+  const cleaned = rawHash.replace(/^#/, '').trim().toLowerCase()
 
   if (!cleaned || cleaned === '/') {
     return 'home'
