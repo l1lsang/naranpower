@@ -460,6 +460,17 @@ function App() {
   const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
 
+  const landingPath = window.location.pathname || '/'
+  const landingToken = useMemo(() => getPowerlinkTokenFromPath(landingPath), [landingPath])
+  const landingPowerlinkKeyword = useMemo(() => {
+    if (!landingToken) {
+      return ''
+    }
+
+    const matchedLink = powerlinkLinks.find((item) => item.token === landingToken)
+    return matchedLink?.keyword ?? ''
+  }, [landingToken, powerlinkLinks])
+
   const displayRollingCases = rollingCases.length > 0 ? rollingCases : defaultRollingCases
   const rollingLoopCases = useMemo(
     () => [...displayRollingCases, ...displayRollingCases, ...displayRollingCases],
@@ -1058,9 +1069,6 @@ function App() {
     }
 
     const endpoint = CONSULTATION_API_URL || '/api/consultation'
-    const landingPath = window.location.pathname || '/'
-    const landingToken = getPowerlinkTokenFromPath(landingPath)
-
     setConsultationBusy(true)
 
     try {
@@ -1656,10 +1664,23 @@ function App() {
                   <p className="hero-eyebrow">
                     대규모 사기 사건, 비상장주식부터 보이스피싱 단체 사기까지
                   </p>
-                  <h1>
-                    나란에서 해결 할 수 없다면
-                    <br />
-                    그 어디서도 해결 할 수 없습니다.
+                  {landingPowerlinkKeyword ? (
+                    <p className="hero-keyword-highlight">{landingPowerlinkKeyword}</p>
+                  ) : null}
+                  <h1 className={landingPowerlinkKeyword ? 'hero-title-with-keyword' : undefined}>
+                    {landingPowerlinkKeyword ? (
+                      <>
+                        {landingPowerlinkKeyword}를 나란에서 해결 할 수 없다면
+                        <br />
+                        그 어디서도 해결 할 수 없습니다.
+                      </>
+                    ) : (
+                      <>
+                        나란에서 해결 할 수 없다면
+                        <br />
+                        그 어디서도 해결 할 수 없습니다.
+                      </>
+                    )}
                   </h1>
                 </div>
 
@@ -1767,7 +1788,7 @@ function App() {
               <div className="section-wrap review-inner">
                 <div className="review-head reveal-on-scroll">
                   <h2>
-                    투자사기 피해회복의
+                    <span className="review-keyword">{landingPowerlinkKeyword || '투자사기'}</span> 피해회복의
                     <br />
                     <span>베테랑 나란</span>과 함께하세요.
                   </h2>
