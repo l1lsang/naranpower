@@ -665,6 +665,57 @@ main {
   box-shadow: 0 18px 30px rgba(6, 26, 48, 0.26);
 }
 
+.hero-stats-bar {
+  position: relative;
+  z-index: 4;
+  margin-top: auto;
+  margin-bottom: clamp(14px, 2.2vh, 28px);
+  border-radius: 26px;
+  border: 1px solid rgba(192, 228, 248, 0.33);
+  padding: clamp(16px, 1.8vw, 24px) clamp(18px, 2.8vw, 34px);
+  background:
+    linear-gradient(140deg, rgba(161, 205, 232, 0.26) 0%, rgba(59, 94, 124, 0.2) 100%),
+    rgba(18, 36, 54, 0.26);
+  box-shadow:
+    0 20px 38px rgba(4, 18, 32, 0.34),
+    inset 0 1px 0 rgba(240, 251, 255, 0.32);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hero-stats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 28px);
+}
+
+.hero-stats-item {
+  text-align: center;
+}
+
+.hero-stats-label {
+  margin: 0;
+  color: rgba(224, 240, 252, 0.9);
+  font-size: clamp(14px, 1.1vw, 18px);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.hero-stats-value {
+  margin-top: 7px;
+  display: block;
+  color: #f5fcff;
+  font-size: clamp(34px, 3.2vw, 52px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 9px 20px rgba(2, 11, 22, 0.34);
+}
+
 .hero-experts {
   position: absolute;
   left: 0;
@@ -1899,6 +1950,25 @@ main {
     font-size: 24px;
   }
 
+  .hero-stats-bar {
+    margin-bottom: 14px;
+    border-radius: 20px;
+    padding: 12px 14px;
+  }
+
+  .hero-stats-list {
+    gap: 10px;
+  }
+
+  .hero-stats-label {
+    font-size: 13px;
+  }
+
+  .hero-stats-value {
+    margin-top: 5px;
+    font-size: clamp(24px, 5.2vw, 34px);
+  }
+
   .hero-experts {
     position: absolute;
     left: 0;
@@ -2363,6 +2433,28 @@ main {
     height: 50px;
     padding: 0 18px;
     font-size: 19px;
+  }
+
+  .hero-stats-bar {
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+
+  .hero-stats-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .hero-stats-item {
+    padding: 4px 0;
+  }
+
+  .hero-stats-label {
+    font-size: 12px;
+  }
+
+  .hero-stats-value {
+    font-size: clamp(22px, 7.2vw, 28px);
   }
 
   .hero-experts {

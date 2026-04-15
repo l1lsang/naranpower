@@ -88,10 +88,15 @@ const ADMIN_INVITE_CODE = (
 
 const CONSULTATION_API_URL = (import.meta.env.VITE_CONSULTATION_API_URL ?? '').trim()
 const POWERLINK_GENERATE_API_URL = (import.meta.env.VITE_POWERLINK_GENERATE_API_URL ?? '').trim()
-const KAKAO_OPEN_CHAT_URL = (import.meta.env.VITE_KAKAO_OPEN_CHAT_URL ?? 'https://open.kakao.com/').trim()
-const CONTACT_PHONE_NUMBER = '02-2088-1248'
+const KAKAO_OPEN_CHAT_URL = 'http://pf.kakao.com/_txdqSn/chat'
+const CONTACT_PHONE_NUMBER = '1551-7203'
 const CONTACT_PHONE_TEL = `tel:${CONTACT_PHONE_NUMBER.replace(/[^0-9+]/g, '')}`
 const HERO_TYPING_TEXT = '나란에서 해결할 수 없다면\n그\u00A0어디서도\u00A0해결할\u00A0수\u00A0없습니다.'
+const HERO_STAT_ITEMS = [
+  { label: '누적 상담건수', value: 36489 },
+  { label: '누적 해결 건수', value: 999 },
+  { label: '일 평균 상담건수', value: 146 },
+] as const
 
 const normalizePowerlinkPathPrefix = (prefix: string): string => {
   const trimmed = prefix.trim()
@@ -505,6 +510,7 @@ function App() {
   const [powerlinkKeywordInput, setPowerlinkKeywordInput] = useState('')
   const [powerlinkGenerateBusy, setPowerlinkGenerateBusy] = useState(false)
   const [heroTypedText, setHeroTypedText] = useState('')
+  const [heroStatValues, setHeroStatValues] = useState<number[]>(() => HERO_STAT_ITEMS.map(() => 0))
 
   const landingPath = window.location.pathname || '/'
   const landingToken = useMemo(() => getPowerlinkTokenFromPath(landingPath), [landingPath])
@@ -595,6 +601,38 @@ function App() {
 
     return () => {
       window.clearTimeout(timeoutId)
+    }
+  }, [route])
+
+  useEffect(() => {
+    if (route !== 'home') {
+      setHeroStatValues(HERO_STAT_ITEMS.map((item) => item.value))
+      return
+    }
+
+    let frameId = 0
+    let animationStart = 0
+    const durationMs = 1900
+    setHeroStatValues(HERO_STAT_ITEMS.map(() => 0))
+
+    const animate = (now: number) => {
+      if (!animationStart) {
+        animationStart = now
+      }
+
+      const progress = Math.min((now - animationStart) / durationMs, 1)
+      const eased = 1 - (1 - progress) ** 3
+      setHeroStatValues(HERO_STAT_ITEMS.map((item) => Math.round(item.value * eased)))
+
+      if (progress < 1) {
+        frameId = window.requestAnimationFrame(animate)
+      }
+    }
+
+    frameId = window.requestAnimationFrame(animate)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
     }
   }, [route])
 
@@ -1831,6 +1869,17 @@ function App() {
                       <p>법무법인 나란</p>
                     </div>
                   </article>
+                </div>
+
+                <div className="hero-stats-bar" aria-label="상담 및 해결 통계">
+                  <ul className="hero-stats-list">
+                    {HERO_STAT_ITEMS.map((item, index) => (
+                      <li className="hero-stats-item" key={item.label}>
+                        <p className="hero-stats-label">{item.label}</p>
+                        <strong className="hero-stats-value">+{(heroStatValues[index] ?? 0).toLocaleString('ko-KR')}</strong>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </section>
