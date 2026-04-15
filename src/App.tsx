@@ -131,8 +131,44 @@ const getPowerlinkTokenFromPath = (pathname: string): string => {
   }
 }
 
-const resolveRoute = (hash: string): PageRoute => {
+const ROUTE_PATHS: Record<PageRoute, string> = {
+  home: '/',
+  lawyers: '/lawyers',
+  companies: '/companies',
+}
+
+const normalizePathname = (pathname: string): string => {
+  const trimmed = pathname.trim()
+
+  if (!trimmed) {
+    return '/'
+  }
+
+  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  const withoutTrailingSlash = withLeadingSlash.replace(/\/+$/, '')
+  return withoutTrailingSlash || '/'
+}
+
+const resolveRoute = (pathname: string): PageRoute => {
+  const cleaned = normalizePathname(pathname).toLowerCase()
+
+  if (cleaned === ROUTE_PATHS.lawyers) {
+    return 'lawyers'
+  }
+
+  if (cleaned === ROUTE_PATHS.companies) {
+    return 'companies'
+  }
+
+  return 'home'
+}
+
+const resolveLegacyHashRoute = (hash: string): PageRoute | null => {
   const cleaned = hash.replace(/^#/, '').trim().toLowerCase()
+
+  if (!cleaned || cleaned === '/') {
+    return 'home'
+  }
 
   if (cleaned === '/lawyers' || cleaned === 'lawyers') {
     return 'lawyers'
@@ -142,8 +178,10 @@ const resolveRoute = (hash: string): PageRoute => {
     return 'companies'
   }
 
-  return 'home'
+  return null
 }
+
+const getRoutePath = (route: PageRoute): string => ROUTE_PATHS[route]
 
 const defaultRollingCases: RollingCase[] = [
   {
@@ -409,7 +447,7 @@ const toAuthErrorMessage = (error: unknown): string => {
 }
 
 function App() {
-  const [route, setRoute] = useState<PageRoute>(() => resolveRoute(window.location.hash))
+  const [route, setRoute] = useState<PageRoute>(() => resolveRoute(window.location.pathname))
   const rollingTrackRef = useRef<HTMLDivElement | null>(null)
   const rollingImageInputRef = useRef<HTMLInputElement | null>(null)
   const companyImageInputRef = useRef<HTMLInputElement | null>(null)
@@ -478,15 +516,28 @@ function App() {
   )
 
   useEffect(() => {
-    const handleHashChange = () => {
-      setRoute(resolveRoute(window.location.hash))
+    const legacyRoute = resolveLegacyHashRoute(window.location.hash)
+
+    if (legacyRoute) {
+      const legacyPath = getRoutePath(legacyRoute)
+      const currentPath = normalizePathname(window.location.pathname)
+
+      if (currentPath !== legacyPath) {
+        window.history.replaceState({}, '', `${legacyPath}${window.location.search}`)
+      }
+
+      setRoute(legacyRoute)
+    }
+
+    const handlePopState = () => {
+      setRoute(resolveRoute(window.location.pathname))
       window.scrollTo({ top: 0 })
     }
 
-    window.addEventListener('hashchange', handleHashChange)
+    window.addEventListener('popstate', handlePopState)
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange)
+      window.removeEventListener('popstate', handlePopState)
     }
   }, [])
 
@@ -1021,6 +1072,30 @@ function App() {
     }
   }
 
+  const navigateToRoute = (nextRoute: PageRoute) => {
+    const nextPath = getRoutePath(nextRoute)
+    const currentPath = normalizePathname(window.location.pathname)
+
+    if (currentPath !== nextPath) {
+      window.history.pushState({}, '', nextPath)
+    }
+
+    setRoute(nextRoute)
+    window.scrollTo({ top: 0 })
+  }
+
+  const isPrimaryNavigationClick = (event: MouseEvent<HTMLAnchorElement>): boolean =>
+    !(event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+
+  const handleRouteNavigation = (event: MouseEvent<HTMLAnchorElement>, nextRoute: PageRoute) => {
+    if (!isPrimaryNavigationClick(event)) {
+      return
+    }
+
+    event.preventDefault()
+    navigateToRoute(nextRoute)
+  }
+
   const moveToQuickFormSection = () => {
     if (route === 'home') {
       quickFormSectionRef.current?.scrollIntoView({
@@ -1031,10 +1106,14 @@ function App() {
     }
 
     shouldScrollToQuickFormRef.current = true
-    window.location.hash = '#/'
+    navigateToRoute('home')
   }
 
   const handleConsultingNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isPrimaryNavigationClick(event)) {
+      return
+    }
+
     event.preventDefault()
     moveToQuickFormSection()
   }
@@ -1082,7 +1161,7 @@ function App() {
           phone,
           details,
           source: landingToken ? 'naver-powerlink' : 'website-quick-form',
-          pagePath: window.location.hash || '#/',
+          pagePath: getRoutePath(route),
           landingPath,
           landingToken,
           queryString: window.location.search || '',
@@ -1417,18 +1496,26 @@ function App() {
   return (
     <div className="app-shell">
       <header className="top-nav">
-        <a className="brand" href="#/">
+        <a className="brand" href={getRoutePath('home')} onClick={(event) => handleRouteNavigation(event, 'home')}>
           <img src={heroImg} className="brand-logo" alt="법무법인 나란 로고" />
         </a>
 
         <nav className="menu" aria-label="주요 메뉴">
-          <a className={route === 'lawyers' ? 'active' : ''} href="#/lawyers">
+          <a
+            className={route === 'lawyers' ? 'active' : ''}
+            href={getRoutePath('lawyers')}
+            onClick={(event) => handleRouteNavigation(event, 'lawyers')}
+          >
             변호사소개
           </a>
-          <a className={route === 'companies' ? 'active' : ''} href="#/companies">
+          <a
+            className={route === 'companies' ? 'active' : ''}
+            href={getRoutePath('companies')}
+            onClick={(event) => handleRouteNavigation(event, 'companies')}
+          >
             사기업체
           </a>
-          <a href="#/" onClick={handleConsultingNavigation}>
+          <a href={getRoutePath('home')} onClick={handleConsultingNavigation}>
             온라인상담
           </a>
 
@@ -1684,7 +1771,7 @@ function App() {
                   </h1>
                 </div>
 
-                <a className="hero-cta" href="#/" onClick={handleConsultingNavigation}>
+                <a className="hero-cta" href={getRoutePath('home')} onClick={handleConsultingNavigation}>
                   피해 사실 접수
                 </a>
 
