@@ -668,7 +668,7 @@ main {
 .hero-stats-bar {
   position: relative;
   z-index: 4;
-  margin-top: auto;
+  margin-top: clamp(24px, 3.5vh, 46px);
   margin-bottom: 0;
   border-radius: 26px;
   border: 1px solid rgba(192, 228, 248, 0.33);
@@ -1956,6 +1956,7 @@ main {
   }
 
   .hero-stats-bar {
+    margin-top: 16px;
     margin-bottom: 0;
     border-radius: 20px;
     padding: 12px 14px;
@@ -2441,6 +2442,7 @@ main {
   }
 
   .hero-stats-bar {
+    margin-top: 12px;
     margin-bottom: 0;
     padding: clamp(8px, 2.8vw, 12px);
   }
