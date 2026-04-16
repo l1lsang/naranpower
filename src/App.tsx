@@ -1887,6 +1887,17 @@ function App() {
                   </h1>
                 </div>
 
+                <div className="hero-stats-bar" ref={heroStatsBarRef} aria-label="상담 및 해결 통계">
+                  <ul className="hero-stats-list">
+                    {HERO_STAT_ITEMS.map((item, index) => (
+                      <li className="hero-stats-item" key={item.label}>
+                        <p className="hero-stats-label">{item.label}</p>
+                        <strong className="hero-stats-value">+{(heroStatValues[index] ?? 0).toLocaleString('ko-KR')}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
                 <a className="hero-cta" href={getRoutePath('home')} onClick={handleConsultingNavigation}>
                   피해 사실 접수
                 </a>
@@ -1915,17 +1926,6 @@ function App() {
                       <p>법무법인 나란</p>
                     </div>
                   </article>
-                </div>
-
-                <div className="hero-stats-bar" ref={heroStatsBarRef} aria-label="상담 및 해결 통계">
-                  <ul className="hero-stats-list">
-                    {HERO_STAT_ITEMS.map((item, index) => (
-                      <li className="hero-stats-item" key={item.label}>
-                        <p className="hero-stats-label">{item.label}</p>
-                        <strong className="hero-stats-value">+{(heroStatValues[index] ?? 0).toLocaleString('ko-KR')}</strong>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               </div>
             </section>

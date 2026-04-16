@@ -669,7 +669,7 @@ main {
   position: relative;
   z-index: 4;
   margin-top: auto;
-  margin-bottom: clamp(14px, 2.2vh, 28px);
+  margin-bottom: 0;
   border-radius: 26px;
   border: 1px solid rgba(192, 228, 248, 0.33);
   padding: clamp(16px, 1.8vw, 24px) clamp(18px, 2.8vw, 34px);
@@ -681,6 +681,11 @@ main {
     inset 0 1px 0 rgba(240, 251, 255, 0.32);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.hero-stats-bar + .hero-cta {
+  margin-top: clamp(14px, 2vh, 24px);
+  margin-bottom: clamp(14px, 2.2vh, 28px);
 }
 
 .hero-stats-list {
@@ -1951,7 +1956,7 @@ main {
   }
 
   .hero-stats-bar {
-    margin-bottom: 14px;
+    margin-bottom: 0;
     border-radius: 20px;
     padding: 12px 14px;
   }
@@ -2436,7 +2441,7 @@ main {
   }
 
   .hero-stats-bar {
-    margin-bottom: 10px;
+    margin-bottom: 0;
     padding: clamp(8px, 2.8vw, 12px);
   }
 
