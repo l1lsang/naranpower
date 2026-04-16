@@ -2437,24 +2437,28 @@ main {
 
   .hero-stats-bar {
     margin-bottom: 10px;
-    padding: 12px;
+    padding: clamp(8px, 2.8vw, 12px);
   }
 
   .hero-stats-list {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(6px, 1.8vw, 8px);
   }
 
   .hero-stats-item {
-    padding: 4px 0;
+    padding: clamp(1px, 0.6vw, 4px) 0;
   }
 
   .hero-stats-label {
-    font-size: 12px;
+    font-size: clamp(10px, 2.8vw, 12px);
+    white-space: nowrap;
   }
 
   .hero-stats-value {
-    font-size: clamp(22px, 7.2vw, 28px);
+    margin-top: 4px;
+    font-size: clamp(16px, 4.8vw, 24px);
+    white-space: nowrap;
+    letter-spacing: -0.02em;
   }
 
   .hero-experts {
