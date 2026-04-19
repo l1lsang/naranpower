@@ -1892,7 +1892,7 @@ function App() {
                     {HERO_STAT_ITEMS.map((item, index) => (
                       <li className="hero-stats-item" key={item.label}>
                         <p className="hero-stats-label">{item.label}</p>
-                        <strong className="hero-stats-value">+{(heroStatValues[index] ?? 0).toLocaleString('ko-KR')}</strong>
+                        <strong className="hero-stats-value">{(heroStatValues[index] ?? 0).toLocaleString('ko-KR')}+</strong>
                       </li>
                     ))}
                   </ul>
