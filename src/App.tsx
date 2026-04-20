@@ -1870,7 +1870,7 @@ function App() {
             <section className="hero-section">
               <div className="hero-inner section-wrap">
                 <div className="hero-copy">
-                  <p className="hero-eyebrow">
+                  <p className="hero-eyebrow hero-eyebrow-nowrap">
                     대규모 사기 사건, 비상장주식부터 보이스피싱 단체 사기까지
                   </p>
                   {landingPowerlinkKeyword ? (
@@ -2255,8 +2255,7 @@ function App() {
             서지원 변호사 |
           </p>
           <p className="footer-meta">
-            본사무소 : 서울 송파구 송파대로167 (문정동 651) | 분사무소 : 서울 도봉구 도봉로164길 43
-            무궁화빌딩 402호
+            본사무소 : 서울 송파구 송파대로167 (문정동 651) | 분사무소 : 서울특별시 도봉구 도봉로 803, 1층
           </p>
           <p className="footer-meta">TEL : {CONTACT_PHONE_NUMBER} | FAX : 02-2054-3451 | 이메일 : naranlawb1@gmail.com</p>
 
